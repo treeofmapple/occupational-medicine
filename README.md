@@ -1,4 +1,4 @@
-# Project Title
+# Occupational Medicine
 
 This is a full-stack application featuring a Rust-based backend API, a data generation utility, and a JavaScript-based frontend. The system uses PostgreSQL for the database, with data population orchestrated by Docker Compose.
 
