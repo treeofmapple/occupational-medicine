@@ -1,7 +1,7 @@
 \echo 'Step 0: Preparing database for fast import...'
-\echo 'Step 1: Creating UNLOGGED tables...'
+\echo 'Step 1: Creating tables...'
 
-CREATE UNLOGGED TABLE empresas (
+CREATE TABLE empresas (
     id_empresa BIGINT NOT NULL,
     nome VARCHAR(255) NOT NULL,
     cnpj VARCHAR(18) NOT NULL,
@@ -13,7 +13,7 @@ CREATE UNLOGGED TABLE empresas (
     status VARCHAR(20)
 );
 
-CREATE UNLOGGED TABLE funcionario_cliente (
+CREATE TABLE funcionario_cliente (
     id_funcionario BIGINT NOT NULL,
     id_empresa BIGINT NOT NULL,
     nome VARCHAR(255) NOT NULL,
@@ -28,7 +28,7 @@ CREATE UNLOGGED TABLE funcionario_cliente (
     role VARCHAR(255)
 );
 
-CREATE UNLOGGED TABLE funcionario_clinica (
+CREATE TABLE funcionario_clinica (
     id_funcionario_clinica BIGINT NOT NULL,
     nome VARCHAR(255) NOT NULL,
     crm VARCHAR(50),
@@ -42,13 +42,13 @@ CREATE UNLOGGED TABLE funcionario_clinica (
     role VARCHAR(255)
 );
 
-CREATE UNLOGGED TABLE tipos_exames (
+CREATE TABLE tipos_exames (
     id_tipos_exames BIGINT NOT NULL,
     nome_tipo VARCHAR(255) NOT NULL,
     descricao TEXT
 );
 
-CREATE UNLOGGED TABLE risco_ocupacional (
+CREATE TABLE risco_ocupacional (
     id_risco_ocupacional BIGINT NOT NULL,
     nome_risco VARCHAR(255) NOT NULL,
     descricao TEXT,
@@ -59,7 +59,7 @@ CREATE UNLOGGED TABLE risco_ocupacional (
     status VARCHAR(20)
 );
 
-CREATE UNLOGGED TABLE exames (
+CREATE TABLE exames (
     id_exames BIGINT NOT NULL,
     id_funcionario BIGINT NOT NULL,
     id_funcionario_clinica BIGINT NOT NULL,
@@ -72,13 +72,13 @@ CREATE UNLOGGED TABLE exames (
     observations TEXT
 );
 
-CREATE UNLOGGED TABLE risco_ocupacional_exames (
+CREATE TABLE risco_ocupacional_exames (
     id_risco_ocupacional_exames BIGINT NOT NULL,
     id_exames BIGINT NOT NULL,
     id_risco_ocupacional BIGINT NOT NULL
 );
 
-\echo 'UNLOGGED tables created successfully.'
+\echo 'tables created successfully.'
 
 \echo 'Step 2: Starting data import...'
 \timing on
@@ -232,15 +232,5 @@ SELECT setval(pg_get_serial_sequence('exames', 'id_exames'), COALESCE((SELECT MA
 SELECT setval(pg_get_serial_sequence('risco_ocupacional_exames', 'id_risco_ocupacional_exames'), COALESCE((SELECT MAX(id_risco_ocupacional_exames) FROM risco_ocupacional_exames), 1));
 
 \echo 'Identity sequences reset successfully.'
-
-\echo 'Step 7: Converting tables to LOGGED for persistence...'
-ALTER TABLE empresas SET LOGGED;
-ALTER TABLE funcionario_cliente SET LOGGED;
-ALTER TABLE funcionario_clinica SET LOGGED;
-ALTER TABLE tipos_exames SET LOGGED;
-ALTER TABLE risco_ocupacional SET LOGGED;
-ALTER TABLE exames SET LOGGED;
-ALTER TABLE risco_ocupacional_exames SET LOGGED;
-\echo 'Tables converted to LOGGED.'
 
 \echo 'Database initialization complete!'
