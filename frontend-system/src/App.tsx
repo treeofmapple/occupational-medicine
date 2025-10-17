@@ -2,27 +2,16 @@ import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginScreen } from './components/LoginScreen';
 import { Dashboard } from './components/Dashboard';
-import { CompanyRegistration } from './components/CompanyRegistration';
-import { ClientEmployeeRegistration } from './components/ClientEmployeeRegistration';
-import { ClinicStaffRegistration } from './components/ClinicStaffRegistration';
+import { CompanyRegistration } from './components/Company';
+import { ClientEmployeeRegistration } from './components/CompanyEmployee';
+import { ClinicStaffRegistration } from './components/ClinicStaff';
 import { MedicalExams } from './components/MedicalExams';
 import { ASOIssuance } from './components/ASOIssuance';
 import { OccupationalRisks } from './components/OccupationalRisks';
 import { Reports } from './components/Reports';
 import { Layout } from './components/Layout';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'doctor' | 'employee';
-}
-
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
-}
+import { User } from './model/User';
+import { AuthContextType } from './model/authentication/AuthContextType';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -34,7 +23,6 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock users for demonstration
 const mockUsers: User[] = [
   { id: '1', name: 'Dr. Maria Silva', email: 'admin@clinic.com', role: 'admin' },
   { id: '2', name: 'Dr. João Santos', email: 'doctor@clinic.com', role: 'doctor' },
@@ -42,7 +30,6 @@ const mockUsers: User[] = [
 ];
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Persist user in localStorage so page reloads keep the session for demo
   const [user, setUser] = useState<User | null>(() => {
     try {
       const raw = localStorage.getItem('auth_user');
@@ -53,7 +40,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const login = (email: string, password: string): boolean => {
-    // Simple mock authentication
     const foundUser = mockUsers.find(u => u.email === email);
     if (foundUser && password === 'password') {
       setUser(foundUser);

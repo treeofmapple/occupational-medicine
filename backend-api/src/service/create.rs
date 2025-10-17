@@ -1,4 +1,6 @@
+use axum::http::StatusCode;
 use rand::Rng;
+use serde_json::json;
 
 use super::{Json, PgPool, State};
 
@@ -33,7 +35,7 @@ pub async fn create_empresa(
 pub async fn create_funcionario_cliente(
     State(pool): State<PgPool>,
     Json(mut data): Json<FuncionarioCliente>,
-) -> Json<FuncionarioCliente> {
+) -> Result<Json<FuncionarioCliente>, (StatusCode, Json<serde_json::Value>)> {
     if data.role.is_none() {
         let mut rng = rand::thread_rng();
         let r = rng.gen_range(0..100);
@@ -46,11 +48,31 @@ pub async fn create_funcionario_cliente(
         });
     }
 
+    let exists = sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS(SELECT 1 FROM funcionario_cliente WHERE cpf = $1)",
+    )
+    .bind(&data.cpf)
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": "Database check failed", "detail": e.to_string() })),
+        )
+    })?;
+
+    if exists {
+        return Err((
+            StatusCode::CONFLICT,
+            Json(json!({ "error": "CPF already registered" })),
+        ));
+    }
+
     let result = sqlx::query_as::<_, FuncionarioCliente>(
         "INSERT INTO funcionario_cliente
-    (id_empresa, nome, cpf, senha, data_nascimento, cargo, departamento, admission_date, status, role)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-    RETURNING *",
+        (id_empresa, nome, cpf, senha, data_nascimento, cargo, departamento, admission_date, status, role)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        RETURNING *",
     )
     .bind(&data.id_empresa)
     .bind(&data.nome)
@@ -64,9 +86,14 @@ pub async fn create_funcionario_cliente(
     .bind(&data.role)
     .fetch_one(&pool)
     .await
-    .unwrap();
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": "Failed to insert record", "detail": e.to_string() })),
+        )
+    })?;
 
-    Json(result)
+    Ok(Json(result))
 }
 
 pub async fn create_funcionario_clinica(

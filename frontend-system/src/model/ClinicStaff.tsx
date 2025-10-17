@@ -1,11 +1,11 @@
 export interface ClinicStaff {
   id: string;
-  name: string;
-  role: 'doctor' | 'employee' | 'administrator';
-  registrationNumber: string;
-  specialty?: string;
+  nome: string;
+  role: 'doctor' | 'employee' | 'admin';
+  crm: string;
+  especialidade?: string;
   email: string;
   phone: string;
-  hireDate: string;
+  data_contratacao: string;
   status: 'active' | 'inactive';
 };

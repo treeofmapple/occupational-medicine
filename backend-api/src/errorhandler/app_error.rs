@@ -52,3 +52,9 @@ impl From<axum_core::Error> for AppError {
         Self(anyhow::Error::new(err))
     }
 }
+
+impl From<anyhow::Error> for AppError {
+    fn from(err: anyhow::Error) -> Self {
+        Self(err)
+    }
+}

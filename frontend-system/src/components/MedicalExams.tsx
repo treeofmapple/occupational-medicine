@@ -1,32 +1,52 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { Plus, ClipboardList, Calendar, User, Building2, Search, FileText, Clock, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import pt from '../i18n/pt-BR';
-
-interface MedicalExam {
-  id: string;
-  employee: string;
-  company: string;
-  type: 'admission' | 'periodic' | 'return_to_work' | 'dismissal';
-  date: string;
-  time: string;
-  doctor: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  result?: 'fit' | 'unfit' | 'fit_with_restrictions';
-  observations?: string;
-  nextExamDate?: string;
-}
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import {
+  Plus,
+  ClipboardList,
+  Calendar,
+  User,
+  Building2,
+  Search,
+  FileText,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import pt from "../i18n/pt-BR";
+import { MedicalExam } from "../model/MedicalExam";
+import { fetchExames } from "../api/dashboard/dashboardEndpoints";
+import { getMedicalExams } from "../api/medicalExamApi";
+import { getEmployeeById, getEmployees } from "../api/employeeApi";
 
 export function MedicalExams() {
   const [exams] = useState<MedicalExam[]>([
@@ -112,9 +132,9 @@ export function MedicalExams() {
     const matchesSearch = exam.employee.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exam.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exam.doctor.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesTab = selectedTab === 'all' || exam.status === selectedTab;
-    
+
     return matchesSearch && matchesTab;
   });
 
@@ -161,19 +181,19 @@ export function MedicalExams() {
 
   const getResultBadge = (result: string | undefined) => {
     if (!result) return null;
-    
+
     const colors = {
       fit: 'bg-green-100 text-green-800',
       unfit: 'bg-red-100 text-red-800',
       fit_with_restrictions: 'bg-yellow-100 text-yellow-800'
     };
-    
+
     const labels = {
       fit: 'Fit for Work',
       unfit: 'Unfit for Work',
       fit_with_restrictions: 'Fit with Restrictions'
     };
-    
+
     return (
       <Badge className={colors[result as keyof typeof colors]}>
         {labels[result as keyof typeof labels]}
@@ -198,10 +218,6 @@ export function MedicalExams() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              {pt['exams.schedule'] || 'Agendar Exame'}
-            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -355,23 +371,6 @@ export function MedicalExams() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search exams by employee, company, or doctor..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Exams Table with Tabs */}
       <Card>
         <CardHeader>
@@ -379,13 +378,7 @@ export function MedicalExams() {
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="all">All Exams</TabsTrigger>
-              <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-              <TabsTrigger value="in_progress">In Progress</TabsTrigger>
-            </TabsList>
-            
+
             <TabsContent value={selectedTab} className="space-y-4">
               <div className="overflow-x-auto">
                 <Table>
@@ -397,7 +390,6 @@ export function MedicalExams() {
                       <TableHead>Doctor</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Result</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -442,18 +434,6 @@ export function MedicalExams() {
                         </TableCell>
                         <TableCell>
                           {getResultBadge(exam.result)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <FileText className="w-4 h-4" />
-                            </Button>
-                            {exam.status === 'scheduled' && (
-                              <Button variant="ghost" size="sm" className="text-blue-600">
-                                Start Exam
-                              </Button>
-                            )}
-                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

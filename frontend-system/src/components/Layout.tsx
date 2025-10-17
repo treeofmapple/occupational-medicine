@@ -1,8 +1,8 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from './ui/button';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { useAuth } from '../App';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { useAuth } from "../App";
 import {
   LayoutDashboard,
   Building2,
@@ -13,26 +13,66 @@ import {
   AlertTriangle,
   BarChart3,
   LogOut,
-  Stethoscope
-} from 'lucide-react';
-import pt from '../i18n/pt-BR';
+  Stethoscope,
+} from "lucide-react";
+import pt from "../i18n/pt-BR";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const location = useLocation();
 
-  const navigationItems: Array<{ path: string; label: string; icon: any; allowedRoles?: string[] }> = [
-    { path: '/dashboard', label: pt['nav.dashboard'], icon: LayoutDashboard },
-  { path: '/companies', label: pt['nav.companies'], icon: Building2, allowedRoles: ['admin', 'employee'] },
-  { path: '/employees/client', label: pt['nav.clientEmployees'], icon: Users, allowedRoles: ['admin', 'employee'] },
-    { path: '/employees/clinic', label: pt['nav.clinicStaff'], icon: UserCheck, allowedRoles: ['admin'] },
-    { path: '/exams', label: pt['nav.medicalExams'], icon: ClipboardList, allowedRoles: ['admin', 'doctor'] },
-    { path: '/aso', label: pt['nav.asoIssuance'], icon: FileText, allowedRoles: ['admin', 'doctor'] },
-    { path: '/risks', label: pt['nav.occupationalRisks'], icon: AlertTriangle, allowedRoles: ['admin', 'doctor'] },
-  { path: '/reports', label: pt['nav.reports'], icon: BarChart3, allowedRoles: ['admin', 'doctor', 'employee'] },
+  const navigationItems: Array<{
+    path: string;
+    label: string;
+    icon: any;
+    allowedRoles?: string[];
+  }> = [
+    { path: "/dashboard", label: pt["nav.dashboard"], icon: LayoutDashboard },
+    {
+      path: "/companies",
+      label: pt["nav.companies"],
+      icon: Building2,
+      allowedRoles: ["admin", "employee"],
+    },
+    {
+      path: "/employees/client",
+      label: pt["nav.clientEmployees"],
+      icon: Users,
+      allowedRoles: ["admin", "employee"],
+    },
+    {
+      path: "/employees/clinic",
+      label: pt["nav.clinicStaff"],
+      icon: UserCheck,
+      allowedRoles: ["admin"],
+    },
+    {
+      path: "/exams",
+      label: pt["nav.medicalExams"],
+      icon: ClipboardList,
+      allowedRoles: ["admin", "doctor"],
+    },
+    {
+      path: "/aso",
+      label: pt["nav.asoIssuance"],
+      icon: FileText,
+      allowedRoles: ["admin", "doctor"],
+    },
+    {
+      path: "/risks",
+      label: pt["nav.occupationalRisks"],
+      icon: AlertTriangle,
+      allowedRoles: ["admin", "doctor"],
+    },
+    {
+      path: "/reports",
+      label: pt["nav.reports"],
+      icon: BarChart3,
+      allowedRoles: ["admin", "doctor", "employee"],
+    },
   ];
 
-  const filteredNavItems = navigationItems.filter(item => {
+  const filteredNavItems = navigationItems.filter((item) => {
     if (!item.allowedRoles || item.allowedRoles.length === 0) return true;
     return !!user && item.allowedRoles.includes(user.role);
   });
@@ -48,8 +88,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">{pt['app.title']}</h1>
-              <p className="text-xs text-gray-500">{pt['app.subtitle']}</p>
+              <h1 className="text-lg font-semibold text-gray-900">
+                {pt["app.title"]}
+              </h1>
+              <p className="text-xs text-gray-500">{pt["app.subtitle"]}</p>
             </div>
           </div>
         </div>
@@ -59,14 +101,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            
+
             return (
               <Link key={item.path} to={item.path}>
-                <div className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
-                  isActive 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}>
+                <div
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </div>
@@ -80,7 +124,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center space-x-3 mb-3">
             <Avatar>
               <AvatarFallback className="bg-blue-100 text-blue-700">
-                {user?.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
+                {user?.name
+                  ?.split(" ")
+                  .map((n: string) => n[0])
+                  .join("") || "U"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -92,14 +139,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </p>
             </div>
           </div>
-            <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="w-full"
             onClick={logout}
           >
             <LogOut className="w-4 h-4 mr-2" />
-            {pt['nav.signOut']}
+            {pt["nav.signOut"]}
           </Button>
         </div>
       </div>
@@ -110,25 +157,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              {navigationItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+              {navigationItems.find((item) => item.path === location.pathname)
+                ?.label || "Dashboard"}
             </h2>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-500">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 export interface Employee {
   id: string;
-  name: string;
+  nome: string;
   cpf: string;
-  dateOfBirth: string;
-  company: string;
-  position: string;
+  data_nascimento: string;
+  id_empresa: string;
+  cargo: string;
   department: string;
-  admissionDate: string;
-  status: 'active' | 'inactive';
+  admission_date: string; // automatic
+  status: 'active' | 'inactive'; // automatic
 }

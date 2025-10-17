@@ -1,102 +1,128 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { Plus, FileText, Download, Search, CheckCircle, Clock, AlertTriangle, User, Building2 } from 'lucide-react';
-import { toast } from 'sonner';
-import pt from '../i18n/pt-BR';
-import { ASO } from '../model/ASO';
-import { MedicalExam } from '../model/MedicalExam';
-import { getMedicalExams } from '../api/medicalExamApi';
-import { getClinicStaff } from '../api/clinicApi';
-import { createASO, getASOs } from '../api/asoApi';
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import {
+  Plus,
+  FileText,
+  Download,
+  Search,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  User,
+  Building2,
+} from "lucide-react";
+import { toast } from "sonner";
+import pt from "../i18n/pt-BR";
+import { ASO } from "../model/ASO";
+import { MedicalExam } from "../model/MedicalExam";
+import { getMedicalExams } from "../api/medicalExamApi";
+import { getClinicStaff } from "../api/clinicApi";
+import { createASO, getASOs } from "../api/asoApi";
+import { getEmployeeById, getEmployeeNameMap, getEmployees } from "../api/employeeApi";
+import { Employee } from "../model/Employee";
 
 export function ASOIssuance() {
   const [asos, setAsos] = useState<ASO[]>([]);
   const [pendingExams, setPendingExams] = useState<MedicalExam[]>([]);
   const [doctors, setDoctors] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     exam: "",
     observations: "",
     restrictions: "",
     validUntil: "",
   });
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [asoData, examData, staffData] = await Promise.all([
-        getASOs(),
-        getMedicalExams(),
-        getClinicStaff(),
-      ]);
+  interface RawASO {
+    id_exames: number;
+    id_funcionario: number;
+    data_exame: string;
+    type_exam: string;
+    result: string;
+    status: string;
+    observations?: string;
+  }
 
-      const normalizedASOs = asoData.map((a) => ({
-        id: a.id_exames?.toString() ?? Math.random().toString(), // fallback id
-        employee: a.id_funcionario?.toString() ?? "Unknown",       // or map to name if available
-        company: "N/A",                                           // API doesn't provide company
-        examDate: a.data_exame,
-        examType: a.type_exam,
-        doctor: "N/A",                                           // fill later if needed
-        result: a.result,
-        status: a.status,
-        observations: a.observations ?? "",
-        restrictions: "",
-        validUntil: "",
-        asoNumber: `ASO-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`,
-        issuanceDate: new Date().toISOString(),
-      }));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-      const normalizedExams = examData.map((e) => ({
-        id: e.id_exames?.toString() ?? Math.random().toString(),
-        employee: e.id_funcionario?.toString() ?? "Unknown",
-        company: "N/A", // adjust if you have company info
-        examDate: e.data_exame,
-        examType: e.type_exam,
-        doctor: "N/A",
-        result: e.result,
-        status: e.status,
-        observations: e.observations ?? "",
-      }));
+        const [asoData, examData, staffData] = await Promise.all([
+          getASOs(),
+          getMedicalExams(),
+          getClinicStaff(),
+        ]);
 
-      setAsos(normalizedASOs);
-      setPendingExams(normalizedExams.filter((exam) => exam.status === "completed"));
-      setDoctors(staffData.filter((s) => s.role === "doctor").map((d) => d.name));
-    } catch (err: any) {
-      console.error(err);
-      setError("Failed to load ASO data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchData();
-}, []);
+        const normalizedASOs = await Promise.all(
+          (asoData as unknown as RawASO[]).map(async (a) => {
+            let employeeName = "Unknown";
 
-  const filteredASOs = asos.filter((aso) => {
-    const employee = (aso.employee ?? "").toLowerCase();
-    const company = (aso.company ?? "").toLowerCase();
-    const asoNumber = (aso.asoNumber ?? "").toLowerCase();
-    const search = (searchTerm ?? "").toLowerCase();
+            try {
+              const employee = await getEmployeeById(a.id_funcionario.toString());
+              employeeName = employee.nome;
+            } catch (err) {
+              console.warn(`Failed to fetch employee with id ${a.id_funcionario}`);
+            }
 
-    return (
-      employee.includes(search) ||
-      company.includes(search) ||
-      asoNumber.includes(search)
-    );
-  });
+            return {
+              id: a.id_exames?.toString() ?? Math.random().toString(),
+              employee: employeeName,
+              examDate: a.data_exame,
+              examType: a.type_exam as ASO["examType"],
+              result: a.result as ASO["result"],
+              status: a.status as ASO["status"],
+              observations: a.observations ?? "",
+              restrictions: "",
+              validUntil: "",
+              asoNumber: `ASO-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`,
+              issuanceDate: new Date().toISOString(),
+            };
+          })
+        );
+
+        setAsos(normalizedASOs);
+      } catch (err: any) {
+        console.error(err);
+        setError("Failed to load ASO data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +140,7 @@ useEffect(() => {
         issuanceDate: new Date().toISOString(),
         validUntil: formData.validUntil || "",
         asoNumber: `ASO-${new Date().getFullYear()}-${Math.floor(
-          Math.random() * 1000
+          Math.random() * 1000,
         )}`,
         status: "issued",
         observations: formData.observations,
@@ -219,12 +245,6 @@ useEffect(() => {
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              {pt["aso.issue"] || "Emitir ASO"}
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>
@@ -297,7 +317,7 @@ useEffect(() => {
                           <p className="font-medium">
                             {getExamTypeLabel(
                               pendingExams.find((e) => e.id === formData.exam)
-                                ?.type || ""
+                                ?.type || "",
                             )}
                           </p>
                         </div>
@@ -306,7 +326,7 @@ useEffect(() => {
                           <div className="mt-1">
                             {getResultBadge(
                               pendingExams.find((e) => e.id === formData.exam)
-                                ?.result || "fit"
+                                ?.result || "fit",
                             )}
                           </div>
                         </div>
@@ -410,11 +430,10 @@ useEffect(() => {
                   <TableHead>Issuance Date</TableHead>
                   <TableHead>Valid Until</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredASOs.map((aso) => (
+                {asos.map((aso) => (
                   <TableRow key={aso.id ?? Math.random()}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
@@ -430,9 +449,6 @@ useEffect(() => {
                         <div>
                           <p className="font-medium text-gray-900">
                             {aso.employee || "Unknown"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {aso.company || "N/A"}
                           </p>
                         </div>
                       </div>
@@ -454,7 +470,7 @@ useEffect(() => {
                               year: "numeric",
                               month: "short",
                               day: "numeric",
-                            }
+                            },
                           )
                         : "-"}
                     </TableCell>
@@ -471,23 +487,6 @@ useEffect(() => {
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(aso.status)}
                         <span className="capitalize">{aso.status}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        {aso.status === "issued" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600"
-                          >
-                            <Download className="w-4 h-4 mr-1" />
-                            Download
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm">
-                          <FileText className="w-4 h-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

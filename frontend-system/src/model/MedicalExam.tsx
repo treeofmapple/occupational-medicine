@@ -1,8 +1,10 @@
+type ExamType = '' | 'admission' | 'periodic' | 'return_to_work' | 'dismissal';
+
 export interface MedicalExam {
   id: string;
   employee: string;
   company: string;
-  type: 'admission' | 'periodic' | 'return_to_work' | 'dismissal';
+  type: ExamType;
   date: string;
   time: string;
   doctor: string;

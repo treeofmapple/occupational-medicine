@@ -5,13 +5,21 @@ use crate::{
             create_empresa, create_exame, create_funcionario_cliente, create_funcionario_clinica,
             create_risco_exame, create_risco_ocupacional, create_tipo_exame,
         },
+        dashboard::{
+            dashboard_clinica, dashboard_empresas, dashboard_exames, dashboard_funcionarios,
+            dashboard_painel, dashboard_riscos, dashboard_upcoming,
+        },
         get::{
             get_empresa_by_id, get_empresas, get_exame_by_id, get_exames,
             get_funcionario_cliente_by_id, get_funcionario_clinica_by_id, get_funcionarios_cliente,
             get_funcionarios_clinica, get_risco_exame_by_id, get_risco_ocupacional_by_id,
             get_riscos_exames, get_riscos_ocupacionais, get_tipo_exame_by_id, get_tipos_exame,
         },
-        logic::{aso_trend, exames_por_mes, fitness_trend, relatorio_risco_categoria},
+        logic::{
+            aso_trend, exames_por_mes, fitness_trend, get_total_funcionarios,
+            relatorio_risco_categoria,
+        },
+        tooling::{export_aso_resume, export_reports},
     },
 };
 
@@ -69,6 +77,18 @@ pub async fn define_access_routes() -> Router {
         )
         .route("/estatisticas/exames-por-mes", Get(exames_por_mes))
         .route("/estatisticas/aso-trend", Get(aso_trend))
+        .route("/estatisticas/total-func", Get(get_total_funcionarios))
+        // -- Dashboards --
+        .route("/dashboard/painel", Get(dashboard_painel))
+        .route("/dashboard/empresas", Get(dashboard_empresas))
+        .route("/dashboard/funcionarios", Get(dashboard_funcionarios))
+        .route("/dashboard/clinica", Get(dashboard_clinica))
+        .route("/dashboard/exames", Get(dashboard_exames))
+        .route("/dashboard/riscos", Get(dashboard_riscos))
+        .route("/dashboard/upcoming", Get(dashboard_upcoming))
+        // -- Tooling --
+        .route("/tooling/resumo/aso", Get(export_aso_resume))
+        .route("/tooling/reports", Get(export_reports))
         .with_state(state)
         .layer(insert_cors_config())
 }

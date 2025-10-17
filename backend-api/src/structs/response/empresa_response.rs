@@ -7,8 +7,8 @@ pub struct EmpresaResponse {
     pub cnpj: String,
     pub endereco: Option<String>,
     pub phone: Option<String>,
-    pub quantidade_funcionarios_cliente: i32,
-    pub quantidade_funcionarios_clinica: i32,
+    pub quantidade_funcionarios_cliente: Option<i32>,
+    pub quantidade_funcionarios_clinica: Option<i32>,
     pub registration_date: NaiveDate,
     pub status: String,
 }

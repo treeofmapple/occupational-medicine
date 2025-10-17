@@ -7,7 +7,7 @@ pub struct FuncionarioClinica {
     pub crm: String,
     pub funcao: String,
     pub senha: String,
-    pub especialidade: String,
+    pub especialidade: Option<String>,
     pub email: String,
     pub phone: String,
     pub data_contratacao: NaiveDate,

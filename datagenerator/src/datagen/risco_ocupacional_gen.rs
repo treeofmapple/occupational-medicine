@@ -15,19 +15,23 @@ pub fn generate_risco_ocupacional<R: Rng + ?Sized>(
             id_risco_ocupacional: i,
             nome_risco: RISKS[((i - 1) as usize) % RISKS.len()].to_string(),
             descricao: Sentence(5..8).fake::<String>(),
-            severity: if rng.gen_bool(0.5) {
-                "low".into()
-            } else {
-                "medium".into()
+            severity: match rng.gen_range(0..3) {
+                0 => "low".into(),
+                1 => "medium".into(),
+                _ => "high".into(),
             },
             preventive_measures: Sentence(3..6).fake::<String>(),
             risk_category,
-            exposure_level: if rng.gen_bool(0.2) {
-                "high".into()
-            } else {
-                "low".into()
+            exposure_level: match rng.gen_range(0..3) {
+                0 => "low".into(),
+                1 => "medium".into(),
+                _ => "high".into(),
             },
-            status: "active".into(),
+            status: if rng.gen_bool(0.98) {
+                "active".into()
+            } else {
+                "inactive".into()
+            },
         };
         wtr.serialize(&ro)?;
     }

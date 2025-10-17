@@ -8,8 +8,8 @@ pub struct FuncionarioCliente {
     pub id_empresa: i64,
     pub nome: String,
     pub cpf: String,
+    pub email: Option<String>,
     pub senha: String,
-    pub email: String,
     #[sqlx(rename = "data_nascimento")]
     pub data_nascimento: NaiveDate,
     pub cargo: String,
